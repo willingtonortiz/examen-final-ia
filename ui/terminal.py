@@ -9,10 +9,11 @@ from nn.neuralnetwork import NN
 class Terminal:
     def __init__(self):
         self.clusters = None
-        self.vocabulary_size = 3
-        self.agent = NN([self.vocabulary_size, 5, 10, 1])
+        self.vocabulary_size = 1000
+        self.agent = NN([self.vocabulary_size, 50, 25, 1], 0.10)
         self.classify_result = None
         self.vocabulary = None
+        self.dataset = None
 
     def clear_screen(self):
         print(chr(27) + "[2J")
@@ -71,12 +72,17 @@ class Terminal:
     def run(self, csv_path):
         dont_exit_program = True
         data = []
-        # with open(csv_path) as csvFile:
-        #     csvReader = csv.DictReader(csvFile)
-        #     for rows in csvReader:
-        #         data.append(rows)
-        sentences = ['hola antoni', 'chau antoni',
-                     'hola antoni', 'chau antoni']
+        with open(csv_path) as csvFile:
+            csvReader = csv.DictReader(csvFile)
+            i = 0
+            for rows in csvReader:
+                if i > 5000:
+                    break
+                data.append(rows)
+                i += 1
+        self.dataset = data
+        sentences = [w["Message"] for w in data]
+
         tokenized_sentences = nlp.tokenize_sentences(sentences)
         # NLP -> Generando vectores
         self.vocabulary = nlp.build_vocabulary(
@@ -103,14 +109,25 @@ class Terminal:
                 self.nn_training_screen(train_som, csv_path)
 
             elif selected_option == 2:
-                for i, cluster in enumerate(self.clusters):
-                    for data in cluster:
-                        # Example:  [10,0,0,0,0,0]
-                        self.agent.update(data)
-                        # Example: 1
-                        self.agent.backPropagate(0, i)
+                def train_nn_from_excel():
+                    for data in self.dataset:
+                        tokenized_sentences = nlp.tokenize_sentences(
+                            [data["Message"]])
+                        vectors = nlp.generate_vectors(
+                            tokenized_sentences, self.vocabulary)
+                        self.agent.update(vectors[0])
+                        cluster = 0
+                        if data["Category"] == "spam":
+                            cluster = 1
+                        self.agent.backPropagate(0, cluster)
 
-                # self.nn_training_screen(train_supervised_nn, csv_path)
+                def train_nn_from_som():
+                    for i, cluster in enumerate(self.clusters):
+                        for data in cluster:
+                            self.agent.update(data)
+                            self.agent.backPropagate(0, i)
+
+                self.nn_training_screen(train_nn_from_excel, csv_path)
             elif selected_option == 3:
                 # result = self.agent.update(input)
                 self.nn_classify_sentence_screen()

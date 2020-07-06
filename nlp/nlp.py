@@ -1,19 +1,35 @@
+import nltk
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+from nltk.stem.porter import PorterStemmer
+
+nltk.download('stopwords')
+nltk.download('punkt')
+
 # text -> string
 # returns -> string[]
 def split_text(text):
-    return text.split(" ")
+    # return text.split(" ")
+    return word_tokenize(text)
 
 
 # text -> string[]
 # returns -> string[]
 def filter_text(text):
+
+    stop_words = set(stopwords.words('english'))
+    text = [word for word in text if not word in stop_words]
+    text = [word for word in text if word.isalpha()]
+    porter = PorterStemmer()
+    text = [porter.stem(word) for word in text]
+
     filters = [".", "_", ","]
     return [word for word in text if word not in filters]
 
 
 # text -> string
 # returns -> string[]
-def split_and_filter(text):
+def split_and_filter(text): 
     splitted_text = split_text(text)
     filtered_text = filter_text(splitted_text)
     return filtered_text
@@ -24,7 +40,6 @@ def split_and_filter(text):
 def tokenize_sentences(sentences):
     # Transformar a minusculas
     sentences = [sentence.lower() for sentence in sentences]
-
     # Se encuntran y filtran las palabras
     result = [split_and_filter(sentence) for sentence in sentences]
 

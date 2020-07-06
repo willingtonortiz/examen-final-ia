@@ -6,7 +6,11 @@ from nn.layer import Layer
 
 
 class NN:
-    def __init__(self, nodes, learning_rate = 0.01):
+    def __init__(self, nodes, learning_rate=0.01):
+        """
+        Params:\n
+        nodes []int:array of the number of neurons each layer has\n
+        """
         # Layers
         self.hiddenLayers = []
 
@@ -28,7 +32,7 @@ class NN:
         # Calcula el error para la capa de salida
         error = value-self.outputLayer.output()[action]
         self.outputLayer.neurons[action].calculate_error(error)
-        
+
         # Calcula el error para la capa oculta
         for i in range(self.hiddenLayers[-1].size()):
             error = self.outputLayer.neurons[action].error * \
@@ -47,7 +51,8 @@ class NN:
 
         for i in range(1, len(self.hiddenLayers)):
             for neuron in self.hiddenLayers[i].neurons:
-                neuron.update_weights(self.learningRate, self.hiddenLayers[i-1].output())
+                neuron.update_weights(
+                    self.learningRate, self.hiddenLayers[i-1].output())
         for neuron in self.hiddenLayers[0].neurons:
             neuron.update_weights(self.learningRate, self.input)
 
@@ -64,10 +69,3 @@ class NN:
 
     def output(self):
         return self.outputLayer.output()
-
-    def max(self):
-        action = 0
-        for i in range(1, self.outputLayer.size()):
-            if(self.output()[i] > self.output()[action]):
-                action = i
-        return action
