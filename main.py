@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import csv
 import nltk
 from nltk.tokenize import word_tokenize
@@ -36,3 +37,4 @@ if __name__ == "__main__":
     dataset = readCSVFile("dataset.csv", 4)
     dataset = cleanText(dataset)
     print(dataset)
+
