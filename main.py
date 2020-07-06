@@ -1,3 +1,4 @@
+from ui.terminal import Terminal
 import csv
 import nltk
 from nltk.tokenize import word_tokenize
@@ -33,7 +34,9 @@ def cleanText(dataset, attribute="Message", language="english"):
 
 
 if __name__ == "__main__":
-    dataset = readCSVFile("dataset.csv", 4)
-    dataset = cleanText(dataset)
-    print(dataset)
+    t = Terminal()
+    t.run('dataset.csv')
+    # dataset = readCSVFile("dataset.csv", 4)
+    # dataset = cleanText(dataset)
+    # print(dataset)
 

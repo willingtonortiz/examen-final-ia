@@ -47,6 +47,7 @@ def build_vocabulary(sentences, size):
     counted_words = sorted(counted_words, reverse=True)
 
     # Se encuentran las 'size' palabras mas repetidas
+    # print(counted_words)
     result = set()
     for i in range(size):
         result.add(counted_words[i][1])
