@@ -2,7 +2,7 @@ import math
 import random
 import string
 import numpy as np
-from DQN.layer import Layer
+from nn.layer import Layer
 
 
 class NN:

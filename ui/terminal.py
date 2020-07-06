@@ -1,12 +1,18 @@
 import time
+import csv
 import threading
 from nlp import nlp
 from som import som
+from nn.neuralnetwork import NN
 
 
 class Terminal:
     def __init__(self):
         self.clusters = None
+        self.vocabulary_size = 3
+        self.agent = NN([self.vocabulary_size, 5, 10, 1])
+        self.classify_result = None
+        self.vocabulary = None
 
     def clear_screen(self):
         print(chr(27) + "[2J")
@@ -36,10 +42,6 @@ class Terminal:
             time.sleep(0.05)
 
     def nn_training_screen(self, neural_network_run, csv_path):
-        # def hola():
-        #     for _ in range(1_000_000_000):
-        #         pass
-
         print(f'La red neuronal entrenará con el archivo {csv_path}')
         algorithm_thread = threading.Thread(target=neural_network_run)
         algorithm_thread.start()
@@ -49,57 +51,68 @@ class Terminal:
         input('Presione Enter para continuar')
 
     def nn_classify_sentence_screen(self):
-        def hola():
-            for _ in range(1_000_000_000):
-                pass
+        def execute_classify(sentences):
+            tokenized_sentences = nlp.tokenize_sentences(sentences)
+            # # NLP -> Generando vectores
+            vectors = nlp.generate_vectors(
+                tokenized_sentences, self.vocabulary)
+            self.classify_result = self.agent.update(vectors[0])
 
         sentence = input('Ingrese la oración a clasificar: ')
-        # vectorize sentence
-        algorithm_thread = threading.Thread(target=hola)
+        algorithm_thread = threading.Thread(
+            target=execute_classify([sentence]))
         algorithm_thread.start()
         while algorithm_thread.is_alive():
             self.print_loading_message()
         print('Listo    ')
-        print('Datos...')
+        print(self.classify_result)
         input('Presione Enter para continuar')
 
     def run(self, csv_path):
         dont_exit_program = True
-        vocabulary_size = 3
+        data = []
+        # with open(csv_path) as csvFile:
+        #     csvReader = csv.DictReader(csvFile)
+        #     for rows in csvReader:
+        #         data.append(rows)
+        sentences = ['hola antoni', 'chau antoni',
+                     'hola antoni', 'chau antoni']
+        tokenized_sentences = nlp.tokenize_sentences(sentences)
+        # NLP -> Generando vectores
+        self.vocabulary = nlp.build_vocabulary(
+            tokenized_sentences, self.vocabulary_size)
+
         while dont_exit_program:
             self.clear_screen()
             self.print_main_menu()
             selected_option = self.get_input(
                 'Ingrese la opción: ', ('1', '2', '3', '4'), int)
             if selected_option == 1:
-                def execute_som():
-                    tokenized_sentences = [
-                        ['hola', 'antoni'], ['chau', 'antoni']]
-
-                    # NLP -> Generando vectores
-                    vocabulary = nlp.build_vocabulary(
-                        tokenized_sentences, vocabulary_size)
+                def train_som():
                     vectors = nlp.generate_vectors(
-                        tokenized_sentences, vocabulary)
-
+                        tokenized_sentences, self.vocabulary)
                     # SOM -> Generando clusters
                     results = som.som(vectors, 1, 2)
 
                     # Agregar 50 elementos clasificados
-                    results[0].append([1, 1, 0])
-                    results[1].append([0, 0, 1])
-
-                    for row in results:
-                        for item in row:
-                            print(item)
-                        print()
+                    # results[0].append([1, 1, 0])
+                    # results[1].append([0, 0, 1])
 
                     self.clusters = results
 
-                self.nn_training_screen(execute_som, csv_path)
+                self.nn_training_screen(train_som, csv_path)
+
             elif selected_option == 2:
-                self.nn_training_screen('supervised', csv_path)
+                for i, cluster in enumerate(self.clusters):
+                    for data in cluster:
+                        # Example:  [10,0,0,0,0,0]
+                        self.agent.update(data)
+                        # Example: 1
+                        self.agent.backPropagate(0, i)
+
+                # self.nn_training_screen(train_supervised_nn, csv_path)
             elif selected_option == 3:
+                # result = self.agent.update(input)
                 self.nn_classify_sentence_screen()
             elif selected_option == 4:
                 dont_exit_program = False

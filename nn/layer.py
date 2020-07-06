@@ -1,4 +1,4 @@
-from DQN.neuron import Neuron
+from nn.neuron import Neuron
 import math
 import numpy as np
 
