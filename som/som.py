@@ -47,14 +47,16 @@ def adjust_weight(value, alpha, data):
     return value
 
 
-# Funcion para ejecutar el SOM
-# data ->
+# Red Neuronal SOM
 class Som:
+    # Inicializacion de la red
     def __init__(self, rows, cols):
         self.rows = rows
         self.cols = cols
         self.weights = []
 
+
+    # Funcion de entrenamiento de la red
     # data: number[]
     def train(self, data):
         data_size = len(data)
@@ -69,7 +71,7 @@ class Som:
 
         # Creando las neuronas
         self.weights = [[[random.random() for _ in range(dimensions)]
-                    for _ in range(self.cols)] for _ in range(self.rows)]
+                         for _ in range(self.cols)] for _ in range(self.rows)]
 
         # Ejecutando algoritmo del SOM
         for it in range(iterations):
@@ -80,7 +82,8 @@ class Som:
             # Eligiendo un elemento aleatorio del dataset
             t = random.randint(0, data_size - 1)
 
-            (bmu_row, bmu_col) = nearest_neuron(data[t], self.weights, self.rows, self.cols)
+            (bmu_row, bmu_col) = nearest_neuron(
+                data[t], self.weights, self.rows, self.cols)
 
             # Ajustando las neuronas de la vecindad
             for i in range(self.rows):
@@ -89,10 +92,13 @@ class Som:
                         self.weights[i][j] = adjust_weight(
                             self.weights[i][j], current_alpha, data[t])
 
+    # Funcion para entrenar un elemento
     def test_one(self, item):
-        (bmu_row, bmu_col) = nearest_neuron(item, self.weights, self.rows, self.cols)
+        (bmu_row, bmu_col) = nearest_neuron(
+            item, self.weights, self.rows, self.cols)
         return bmu_row * self.cols + bmu_col
 
+    # Funcion para entrenar un conjunto de elementos
     # data: [ { type, data } ]
     def test_many(self, data):
         # Clasificando los inputs en los clusters generados
@@ -102,7 +108,46 @@ class Som:
         # Clasificando la data en los (rows * cols) clusters
         results = [[] for _ in range(self.rows * self.cols)]
         for i, item in enumerate(data):
-            (bmu_row, bmu_col) = nearest_neuron(item['data'], self.weights, self.rows, self.cols)
+            (bmu_row, bmu_col) = nearest_neuron(
+                item['data'], self.weights, self.rows, self.cols)
             results[bmu_row * self.cols + bmu_col].append(item)
 
         return results
+
+    # Permite inicializar la red para la ejecucion de examenes
+    def train_setup(self, data):
+        data_size = len(data)
+        data_dimensions = len(data[0])
+
+        # Inicializando variables
+        dimensions = data_dimensions
+
+        # Creando la matriz de neuronas
+        self.weights = [[[random.random() for _ in range(dimensions)]
+                         for _ in range(self.cols)] for _ in range(self.rows)]
+
+    # Ejecuta 1000 iteraciones de entrenamiento a la red
+    def train_error(self, data):
+        data_size = len(data)
+        iterations = 1000  # variable?
+        max_range = self.rows + self.cols
+        learning_rate = 0.5  # variable?
+
+        # Ejecutando algoritmo del SOM
+        for it in range(iterations):
+            alpha = 1.0 - it / iterations
+            current_alpha = alpha * learning_rate
+            current_range = int(alpha * max_range)
+
+            # Eligiendo un elemento aleatorio del dataset
+            t = random.randint(0, data_size - 1)
+
+            (bmu_row, bmu_col) = nearest_neuron(
+                data[t], self.weights, self.rows, self.cols)
+
+            # Ajustando las neuronas de la vecindad
+            for i in range(self.rows):
+                for j in range(self.cols):
+                    if manhattan_distance(bmu_row, bmu_col, i, j) < current_range:
+                        self.weights[i][j] = adjust_weight(
+                            self.weights[i][j], current_alpha, data[t])
