@@ -200,7 +200,6 @@ class Terminal:
                 self.nn_training_screen(train_som)
 
             elif selected_option == 2:
-<<<<<<< HEAD
                 def train_nn_from_excel():
                     """
                     Entrena la red supervisada a partir de los datos etiquetados del excel
@@ -222,8 +221,6 @@ class Terminal:
                             self.agent.backPropagate(0, cluster)
                         errors.append(error*0.5)
 
-=======
->>>>>>> 3f5988a0da5b2b01d4c90c84ff5b3eafdc4982e4
                 def train_nn_from_som():
                     """
                     Entrena la red supervisada a partir de los datos etiquetados del la red SOM
