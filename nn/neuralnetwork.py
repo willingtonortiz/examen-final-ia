@@ -10,6 +10,7 @@ class NN:
         """
         Params:\n
         nodes []int:array of the number of neurons each layer has\n
+        Inicial la red con los datos ingresados
         """
         # Layers
         self.hiddenLayers = []
@@ -22,6 +23,9 @@ class NN:
         self.outputLayer = Layer(nodes[-2], nodes[-1])
 
     def update(self, input):
+        """
+        Realiza la predicción a apartir del input
+        """
         self.input = input
         self.hiddenLayers[0].predict(input)
         for i in range(1, len(self.hiddenLayers)):
@@ -29,6 +33,9 @@ class NN:
         return self.outputLayer.predict(self.hiddenLayers[-1].output())
 
     def backPropagate(self, action, value):
+        """
+        realiza el backpropagate a la red neuronal
+        """
         # Calcula el error para la capa de salida
         error = value-self.outputLayer.output()[action]
         self.outputLayer.neurons[action].calculate_error(error)
@@ -56,16 +63,8 @@ class NN:
         for neuron in self.hiddenLayers[0].neurons:
             neuron.update_weights(self.learningRate, self.input)
 
-    def weights(self):
-        print('Pesos de Entrada:')
-        self.hiddenLayers[0].weigths()
-        print()
-        for i in range(1, len(self.hiddenLayers)):
-            print('Peso de capa oculta:')
-            self.hiddenLayers[i].weigths()
-            print()
-        print('Pesos de Salida:')
-        self.outputLayer.weigths()
-
     def output(self):
+        """
+        Devuelve el resultado
+        """
         return self.outputLayer.output()

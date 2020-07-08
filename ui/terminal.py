@@ -200,8 +200,32 @@ class Terminal:
                 self.nn_training_screen(train_som)
 
             elif selected_option == 2:
+                def train_nn_from_excel():
+                    """
+                    Entrena la red supervisada a partir de los datos etiquetados del excel
+                    """
+                    epoch = 100
+                    errors = []
+                    for i in range(epoch):
+                        error = 0
+                        for data in self.dataset:
+                            tokenized_sentences = nlp.tokenize_sentences(
+                                [data["Message"]])
+                            vectors = nlp.generate_vectors(
+                                tokenized_sentences, self.vocabulary)
+                            result = self.agent.update(vectors[0])
+                            cluster = 0
+                            if data["Category"] == "spam":
+                                cluster = 1
+                            error += pow(cluster-result[0], 2)
+                            self.agent.backPropagate(0, cluster)
+                        errors.append(error*0.5)
+
                 def train_nn_from_som():
-                    epoch = 1
+                    """
+                    Entrena la red supervisada a partir de los datos etiquetados del la red SOM
+                    """
+                    epoch = 100
                     errors = []
                     for e in range(epoch):
                         error = 0
