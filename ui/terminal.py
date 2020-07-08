@@ -4,14 +4,18 @@ import threading
 from nlp import nlp
 from som import som
 from nn.neuralnetwork import NN
+import matplotlib
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 class Terminal:
     def __init__(self):
         self.clusters = None
-        self.vocabulary_size = 1000
-        self.agent = NN([self.vocabulary_size, 50, 25, 1], 0.10)
+        self.vocabulary_size = 10
+        self.agent = NN([self.vocabulary_size, 50, 1], 0.10)
         self.classify_result = None
+        self.exam = None
         self.vocabulary = None
         self.dataset = None
 
@@ -24,8 +28,9 @@ class Terminal:
         print('├─────────────────────────────────────────┤')
         print('│ 1. Entrenar red neuronal no supervisada │')
         print('│ 2. Entrenar red neuronal supervisada    │')
-        print('│ 3. Clasificar oración                   │')
-        print('│ 4. Salir                                │')
+        print('│ 3. Tomar examen a la red neuronal       │')
+        print('│ 4. Clasificar oración                   │')
+        print('│ 5. Salir                                │')
         print('└─────────────────────────────────────────┘')
 
     def get_input(self, input_message, valid_inputs, data_type):
@@ -72,15 +77,20 @@ class Terminal:
     def run(self, csv_path):
         dont_exit_program = True
         data = []
+        exam = []
         with open(csv_path) as csvFile:
             csvReader = csv.DictReader(csvFile)
             i = 0
             for rows in csvReader:
-                if i > 5000:
+                if i < 100:
+                    data.append(rows)
+                elif i < 150:
+                    exam.append(rows)
+                else:
                     break
-                data.append(rows)
                 i += 1
         self.dataset = data
+        self.exam = exam
         sentences = [w["Message"] for w in data]
 
         tokenized_sentences = nlp.tokenize_sentences(sentences)
@@ -92,7 +102,7 @@ class Terminal:
             self.clear_screen()
             self.print_main_menu()
             selected_option = self.get_input(
-                'Ingrese la opción: ', ('1', '2', '3', '4'), int)
+                'Ingrese la opción: ', ('1', '2', '3', '4', '5'), int)
             if selected_option == 1:
                 def train_som():
                     vectors = nlp.generate_vectors(
@@ -110,26 +120,57 @@ class Terminal:
 
             elif selected_option == 2:
                 def train_nn_from_excel():
-                    for data in self.dataset:
+                    epoch = 100
+                    errors = []
+                    for i in range(epoch):
+                        error = 0
+                        for data in self.dataset:
+                            tokenized_sentences = nlp.tokenize_sentences(
+                                [data["Message"]])
+                            vectors = nlp.generate_vectors(
+                                tokenized_sentences, self.vocabulary)
+                            result = self.agent.update(vectors[0])
+                            cluster = 0
+                            if data["Category"] == "spam":
+                                cluster = 1
+                            error += pow(cluster-result[0], 2)
+                            self.agent.backPropagate(0, cluster)
+                        errors.append(error*0.5)
+
+                def train_nn_from_som():
+                    epoch = 100
+                    errors = []
+                    for e in range(epoch):
+                        error = 0
+                        for i, cluster in enumerate(self.clusters):
+                            for data in cluster:
+                                result = self.agent.update(data)
+                                error += pow(i-result[0], 2)
+                                self.agent.backPropagate(0, i)
+                        errors.append(error*0.5)
+
+                self.nn_training_screen(train_nn_from_som, csv_path)
+            elif selected_option == 3:
+                def graficar():
+                    error = []
+                    error.append(0)
+                    i = 0
+                    for data in self.exam:
                         tokenized_sentences = nlp.tokenize_sentences(
                             [data["Message"]])
                         vectors = nlp.generate_vectors(
                             tokenized_sentences, self.vocabulary)
-                        self.agent.update(vectors[0])
+                        result = self.agent.update(vectors[0])
                         cluster = 0
                         if data["Category"] == "spam":
                             cluster = 1
-                        self.agent.backPropagate(0, cluster)
-
-                def train_nn_from_som():
-                    for i, cluster in enumerate(self.clusters):
-                        for data in cluster:
-                            self.agent.update(data)
-                            self.agent.backPropagate(0, i)
-
-                self.nn_training_screen(train_nn_from_excel, csv_path)
-            elif selected_option == 3:
+                        error.append(
+                            (pow(cluster-result[0], 2) + error[i-1])*0.5)
+                        i += 1
+                graficar()
+                # result = self.agent.update(input)
+            elif selected_option == 4:
                 # result = self.agent.update(input)
                 self.nn_classify_sentence_screen()
-            elif selected_option == 4:
+            elif selected_option == 5:
                 dont_exit_program = False
