@@ -6,6 +6,7 @@ from nltk.stem.porter import PorterStemmer
 nltk.download('stopwords')
 nltk.download('punkt')
 
+# Tokeniza un texto de entrada 
 # text -> string
 # returns -> string[]
 def split_text(text):
@@ -13,6 +14,7 @@ def split_text(text):
     return word_tokenize(text)
 
 
+# Filtra palabras indeseadas en el texto
 # text -> string[]
 # returns -> string[]
 def filter_text(text):
@@ -27,6 +29,7 @@ def filter_text(text):
     return [word for word in text if word not in filters]
 
 
+# Divide y filtra un texto
 # text -> string
 # returns -> string[]
 def split_and_filter(text): 
@@ -35,6 +38,7 @@ def split_and_filter(text):
     return filtered_text
 
 
+# Tokeniza un arreglo de textos
 # sentences -> string[]
 # returns -> string[][]
 def tokenize_sentences(sentences):
@@ -46,6 +50,7 @@ def tokenize_sentences(sentences):
     return result
 
 
+# Construye un vocabulario de tamaño 'size' a partir delas oraciones
 # sentences -> string[][]
 # returns -> set<string>
 def build_vocabulary(sentences, size):
@@ -70,6 +75,7 @@ def build_vocabulary(sentences, size):
     return result
 
 
+# Genera vectores de caracteristicas a partir de un vocabulario y un conjunto de oraciones
 def generate_vectors(sentences, vocabulary):
     vocabulary_size = len(vocabulary)
 
@@ -87,8 +93,9 @@ def generate_vectors(sentences, vocabulary):
     return vectors
 
 
+# Funcion main para probar las funciones
 if __name__ == '__main__':
-    sentences = ["A A A", "B B B B B", "C C C", "D D D D", "nepin antoni"]
+    sentences = ["A A A", "B B B B B", "C C C", "D D D D"]
 
     tokenized_sentences = tokenize_sentences(sentences)
     # print(tokenized_sentences)

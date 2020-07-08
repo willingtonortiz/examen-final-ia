@@ -204,7 +204,31 @@ class Terminal:
 
             # El usuario selecciona la opcion 2 del menu
             elif selected_option == 2:
+                def train_nn_from_excel():
+                    """
+                    Entrena la red supervisada a partir de los datos etiquetados del excel
+                    """
+                    epoch = 100
+                    errors = []
+                    for i in range(epoch):
+                        error = 0
+                        for data in self.dataset:
+                            tokenized_sentences = nlp.tokenize_sentences(
+                                [data["Message"]])
+                            vectors = nlp.generate_vectors(
+                                tokenized_sentences, self.vocabulary)
+                            result = self.agent.update(vectors[0])
+                            cluster = 0
+                            if data["Category"] == "spam":
+                                cluster = 1
+                            error += pow(cluster-result[0], 2)
+                            self.agent.backPropagate(0, cluster)
+                        errors.append(error*0.5)
+
                 def train_nn_from_som():
+                    """
+                    Entrena la red supervisada a partir de los datos etiquetados del la red SOM
+                    """
                     epoch = 100
                     errors = []
                     for e in range(epoch):
@@ -226,8 +250,13 @@ class Terminal:
                     # # NLP -> Generando vectores
                     vectors = nlp.generate_vectors(
                         tokenized_sentences, self.vocabulary)
+<<<<<<< HEAD
                     self.classify_result = self.names[0] if self.agent.update(vectors[0])[0] > 0.5 else self.names[1]
                 
+=======
+                    self.classify_result = self.names[0] if self.agent.update(
+                        vectors[0])[0] > 0.5 else self.names[1]
+>>>>>>> 28c0f013b745c4cac1d9996832a1ef4776dcac97
                 self.nn_classify_sentence_screen(execute_classify)
 
             # El usuario selecciona la opcion 4 del menu
