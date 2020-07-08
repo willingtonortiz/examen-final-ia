@@ -4,14 +4,16 @@ import threading
 from nlp import nlp
 from som.som import Som
 from nn.neuralnetwork import NN
+import numpy as np
 
 
 class Terminal:
     def __init__(self):
         self.clusters = None
-        self.vocabulary_size = 1000
-        self.agent = NN([self.vocabulary_size, 50, 25, 1], 0.10)
+        self.vocabulary_size = 10
+        self.agent = NN([self.vocabulary_size, 50, 1], 0.10)
         self.classify_result = None
+        self.exam = None
         self.vocabulary = None
         self.dataset = None
 
@@ -19,14 +21,15 @@ class Terminal:
         print(chr(27) + "[2J")
 
     def print_main_menu(self):
-        print('┌─────────────────────────────────────────┐')
-        print('│           Clasificador de spam          │')
-        print('├─────────────────────────────────────────┤')
-        print('│ 1. Entrenar red neuronal no supervisada │')
-        print('│ 2. Entrenar red neuronal supervisada    │')
-        print('│ 3. Clasificar oración                   │')
-        print('│ 4. Salir                                │')
-        print('└─────────────────────────────────────────┘')
+        print('┌─────────────────────────────────────────────────────────┐')
+        print('│                 Clasificador de spam                    │')
+        print('├─────────────────────────────────────────────────────────┤')
+        print('│ 1. Entrenar red neuronal no supervisada                 │')
+        print('│ 2. Etiquetar 1000 datos con red neuronal no supervisada │')
+        print('│ 3. Entrenar red neuronal supervisada                    │')
+        print('│ 4. Clasificar oración                                   │')
+        print('│ 5. Salir                                                │')
+        print('└─────────────────────────────────────────────────────────┘')
 
     def get_input(self, input_message, valid_inputs, data_type):
         incorrect_input = True
@@ -84,16 +87,31 @@ class Terminal:
 
     def read_unlabeled_dataset_rows(self):
         data = []
+        exam = []
         with open('unlabeled_dataset.csv') as csvFile:
             csvReader = csv.DictReader(csvFile)
             i = 1
             for rows in csvReader:
-                if i > 1000:
+                if i < 100:
+                    data.append(rows)
+                elif i < 150:
+                    exam.append(rows)
+                else:
                     break
-                data.append(rows)
                 i += 1
+        self.dataset = data
+        self.exam = exam
         sentences = [w["Message"] for w in data]
         return sentences
+
+    def nn_label_dataset_rows(self, csv_path, nn_label_run):
+        print(f'Clasificando 1000 filas del archivo {csv_path}')
+        algorithm_thread = threading.Thread(target=nn_label_run(csv_path))
+        algorithm_thread.start()
+        while algorithm_thread.is_alive():
+            self.print_loading_message()
+        print('Listo    ')
+        input('Presione Enter para continuar')
 
     def run(self, csv_path):
 
@@ -105,7 +123,7 @@ class Terminal:
             self.clear_screen()
             self.print_main_menu()
             selected_option = self.get_input(
-                'Ingrese la opción: ', ('1', '2', '3', '4'), int)
+                'Ingrese la opción: ', ('1', '2', '3', '4', '5'), int)
             if selected_option == 1:
                 def train_som():
                     # ========== Obteniendo dataset de 50 elementos ========== #
@@ -131,26 +149,46 @@ class Terminal:
                 self.nn_training_screen(train_som, csv_path)
 
             elif selected_option == 2:
+                def nn_label_run(csv_path):
+                    pass
+
+                self.nn_label_dataset_rows(
+                    'unlabeled_dataset.csv', nn_label_run)
+
+            elif selected_option == 3:
                 def train_nn_from_excel():
-                    for data in self.dataset:
-                        tokenized_sentences = nlp.tokenize_sentences(
-                            [data["Message"]])
-                        vectors = nlp.generate_vectors(
-                            tokenized_sentences, self.vocabulary)
-                        self.agent.update(vectors[0])
-                        cluster = 0
-                        if data["Category"] == "spam":
-                            cluster = 1
-                        self.agent.backPropagate(0, cluster)
+                    epoch = 100
+                    errors = []
+                    for i in range(epoch):
+                        error = 0
+                        for data in self.dataset:
+                            tokenized_sentences = nlp.tokenize_sentences(
+                                [data["Message"]])
+                            vectors = nlp.generate_vectors(
+                                tokenized_sentences, self.vocabulary)
+                            result = self.agent.update(vectors[0])
+                            cluster = 0
+                            if data["Category"] == "spam":
+                                cluster = 1
+                            error += pow(cluster-result[0], 2)
+                            self.agent.backPropagate(0, cluster)
+                        errors.append(error*0.5)
 
                 def train_nn_from_som():
-                    for i, cluster in enumerate(self.clusters):
-                        for data in cluster:
-                            self.agent.update(data)
-                            self.agent.backPropagate(0, i)
+                    epoch = 100
+                    errors = []
+                    for e in range(epoch):
+                        error = 0
+                        for i, cluster in enumerate(self.clusters):
+                            for data in cluster:
+                                result = self.agent.update(data)
+                                error += pow(i-result[0], 2)
+                                self.agent.backPropagate(0, i)
+                        errors.append(error*0.5)
 
-                self.nn_training_screen(train_nn_from_excel, csv_path)
-            elif selected_option == 3:
+                self.nn_training_screen(train_nn_from_som, csv_path)
+
+            elif selected_option == 4:
                 def execute_classify(sentences):
                     tokenized_sentences = nlp.tokenize_sentences(sentences)
                     # # NLP -> Generando vectores
@@ -158,5 +196,6 @@ class Terminal:
                         tokenized_sentences, self.vocabulary)
                     self.classify_result = self.agent.update(vectors[0])
                 self.nn_classify_sentence_screen(execute_classify)
-            elif selected_option == 4:
+
+            elif selected_option == 5:
                 dont_exit_program = False
