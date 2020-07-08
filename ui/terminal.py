@@ -2,7 +2,7 @@ import time
 import csv
 import threading
 from nlp import nlp
-from som import som
+from som.som import Som
 from nn.neuralnetwork import NN
 
 
@@ -63,6 +63,26 @@ class Terminal:
         input('Presione Enter para continuar')
 
     def create_vocabulary(self):
+        sentences = self.read_unlabeled_dataset_rows()
+        tokenized_sentences = nlp.tokenize_sentences(sentences)
+        self.vocabulary = nlp.build_vocabulary(
+            tokenized_sentences, self.vocabulary_size)
+        print("VOCABULARIO CARGADO!")
+
+    def read_labeled_dataset_rows(self):
+        data = []
+        with open('labeled_dataset.csv') as csvFile:
+            csvReader = csv.DictReader(csvFile)
+            i = 1
+            for rows in csvReader:
+                if i > 50:
+                    break
+                data.append(rows)
+                i += 1
+        sentences = [w["Message"] for w in data]
+        return sentences
+
+    def read_unlabeled_dataset_rows(self):
         data = []
         with open('unlabeled_dataset.csv') as csvFile:
             csvReader = csv.DictReader(csvFile)
@@ -73,30 +93,13 @@ class Terminal:
                 data.append(rows)
                 i += 1
         sentences = [w["Message"] for w in data]
-        print("VOCABULARIO CARGADO!")
-
-        tokenized_sentences = nlp.tokenize_sentences(sentences)
-        self.vocabulary = nlp.build_vocabulary(
-            tokenized_sentences, self.vocabulary_size)
+        return sentences
 
     def run(self, csv_path):
 
         # ========== Generando vocabulario ========== #
         self.create_vocabulary()
-
         dont_exit_program = True
-        # data = []
-        # with open(csv_path) as csvFile:
-        #     csvReader = csv.DictReader(csvFile)
-        #     i = 0
-        #     for rows in csvReader:
-        #         if i > 5000:
-        #             break
-        #         data.append(rows)
-        #         i += 1
-        # self.dataset = data
-        # sentences = [w["Message"] for w in data]
-        # tokenized_sentences = nlp.tokenize_sentences(sentences)
 
         while dont_exit_program:
             self.clear_screen()
@@ -106,27 +109,22 @@ class Terminal:
             if selected_option == 1:
                 def train_som():
                     # ========== Obteniendo dataset de 50 elementos ========== #
-                    data = []
-                    with open('labeled_dataset.csv') as csvFile:
-                        csvReader = csv.DictReader(csvFile)
-                        i = 1
-                        for rows in csvReader:
-                            if i > 50:
-                                break
-                            data.append(rows)
-                            i += 1
-                    sentences = [w["Message"] for w in data]
+                    sentences = self.read_labeled_dataset_rows()
                     tokenized_sentences = nlp.tokenize_sentences(sentences)
 
                     # NLP -> Generando vectores
-                    vectors = nlp.generate_vectors(tokenized_sentences, self.vocabulary)
+                    vectors = nlp.generate_vectors(
+                        tokenized_sentences, self.vocabulary)
 
-                    # SOM -> Generando clusters
-                    results = som.som(vectors, 1, 2)
+                    # SOM -> Generando clusters (2 clusters => 50 elementos)
+                    som = Som(1, 2)
+                    som.train(vectors)
+                    results = som.test_many(vectors)
 
-                    # Agregar 50 elementos clasificados
-                    # results[0].append([1, 1, 0])
-                    # results[1].append([0, 0, 1])
+                    for item in results:
+                        print(len(item))
+                        for row in item:
+                            print(len(row))
 
                     self.clusters = results
 
