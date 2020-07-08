@@ -157,7 +157,6 @@ class Terminal:
                     som = Som(1, 2)
                     som.train(vectors)
                     clusters = som.test_many(data)
-                    self.clusters = clusters
 
                     # ========== DEFINIENDO SPAM Y NO SPAM ========== #
 
@@ -180,6 +179,10 @@ class Terminal:
                         names[1] = "spam"
                     self.names = names
 
+                    # Reajustando clusters
+                    clusters = [[item['data'] for item in cluster]
+                                for cluster in clusters]
+
                     # ========== FASE DE ETIQUETADO Y AGRUPAMIENTO DE DATASETS ========== #
 
                     # Vectorizando 1000 datos
@@ -191,7 +194,9 @@ class Terminal:
                     # Etiquetando y agrupando
                     for vector in vectors:
                         tag = som.test_one(vector)
-                        self.clusters[tag].append(vector)
+                        clusters[tag].append(vector)
+                        
+                    self.clusters = clusters
 
                 self.nn_training_screen(train_som, csv_path)
 
