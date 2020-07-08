@@ -201,6 +201,9 @@ class Terminal:
 
             elif selected_option == 2:
                 def train_nn_from_excel():
+                    """
+                    Entrena la red supervisada a partir de los datos etiquetados del excel
+                    """
                     epoch = 100
                     errors = []
                     for i in range(epoch):
@@ -219,6 +222,9 @@ class Terminal:
                         errors.append(error*0.5)
 
                 def train_nn_from_som():
+                    """
+                    Entrena la red supervisada a partir de los datos etiquetados del la red SOM
+                    """
                     epoch = 100
                     errors = []
                     for e in range(epoch):
