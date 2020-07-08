@@ -56,14 +56,7 @@ class Terminal:
         print('Listo    ')
         input('Presione Enter para continuar')
 
-    def nn_classify_sentence_screen(self):
-        def execute_classify(sentences):
-            tokenized_sentences = nlp.tokenize_sentences(sentences)
-            # # NLP -> Generando vectores
-            vectors = nlp.generate_vectors(
-                tokenized_sentences, self.vocabulary)
-            self.classify_result = self.agent.update(vectors[0])
-
+    def nn_classify_sentence_screen(self, execute_classify):
         sentence = input('Ingrese la oración a clasificar: ')
         algorithm_thread = threading.Thread(
             target=execute_classify([sentence]))
@@ -168,9 +161,13 @@ class Terminal:
                             (pow(cluster-result[0], 2) + error[i-1])*0.5)
                         i += 1
                 graficar()
-                # result = self.agent.update(input)
             elif selected_option == 4:
-                # result = self.agent.update(input)
-                self.nn_classify_sentence_screen()
+                def execute_classify(sentences):
+                    tokenized_sentences = nlp.tokenize_sentences(sentences)
+                    # # NLP -> Generando vectores
+                    vectors = nlp.generate_vectors(
+                        tokenized_sentences, self.vocabulary)
+                    self.classify_result = self.agent.update(vectors[0])
+                self.nn_classify_sentence_screen(execute_classify)
             elif selected_option == 5:
                 dont_exit_program = False
