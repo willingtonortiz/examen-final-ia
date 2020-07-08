@@ -10,12 +10,13 @@ import numpy as np
 class Terminal:
     def __init__(self):
         self.clusters = None
-        self.vocabulary_size = 10
+        self.vocabulary_size = 1000
         self.agent = NN([self.vocabulary_size, 50, 1], 0.10)
         self.classify_result = None
         self.exam = None
         self.vocabulary = None
         self.dataset = None
+        self.names = {}
 
     def clear_screen(self):
         print(chr(27) + "[2J")
@@ -85,12 +86,25 @@ class Terminal:
         sentences = [w["Message"] for w in data]
         return sentences
 
+    def read_labeled_dataset_Categories(self):
+        data = []
+        with open('labeled_dataset.csv') as csvFile:
+            csvReader = csv.DictReader(csvFile)
+            i = 1
+            for rows in csvReader:
+                if i > 50:
+                    break
+                data.append(rows)
+                i += 1
+        sentences = [w["Category"] for w in data]
+        return sentences
+
     def read_unlabeled_dataset_rows(self):
         data = []
         exam = []
         with open('unlabeled_dataset.csv') as csvFile:
             csvReader = csv.DictReader(csvFile)
-            i = 1
+            i = 0
             for rows in csvReader:
                 if i < 1000:
                     data.append(rows)
@@ -126,8 +140,10 @@ class Terminal:
                 'Ingrese la opción: ', ('1', '2', '3', '4', '5'), int)
             if selected_option == 1:
                 def train_som():
-                    # ========== Obteniendo dataset de 50 elementos ========== #
+                    # ========== FASE DE ENTRENAMIENTO ========== #
+                    # Obteniendo dataset de 50 elementos
                     sentences = self.read_labeled_dataset_rows()
+                    categories = self.read_labeled_dataset_Categories()
                     tokenized_sentences = nlp.tokenize_sentences(sentences)
 
                     # NLP -> Generando vectores
@@ -135,16 +151,47 @@ class Terminal:
                         tokenized_sentences, self.vocabulary)
 
                     # SOM -> Generando clusters (2 clusters => 50 elementos)
+                    data = [{'type': categories[i], 'data': val}
+                            for i, val in enumerate(vectors)]
+
                     som = Som(1, 2)
                     som.train(vectors)
-                    results = som.test_many(vectors)
+                    clusters = som.test_many(data)
+                    self.clusters = clusters
 
-                    for item in results:
-                        print(len(item))
-                        # for row in item:
-                        #     print(len(row))
+                    # ========== DEFINIENDO SPAM Y NO SPAM ========== #
 
-                    self.clusters = results
+                    zero_counter = 0
+                    one_counter = 0
+                    for i, cluster in enumerate(clusters):
+                        for item in cluster:
+                            if i == 0 and item['type'] == "spam":
+                                zero_counter += 1
+                            elif i == 1 and item['type'] == "spam":
+                                one_counter += 1
+
+                    # Colocando nombres
+                    names = {}
+                    if zero_counter > one_counter:
+                        names[0] = "spam"
+                        names[1] = "no spam"
+                    else:
+                        names[0] = "no spam"
+                        names[1] = "spam"
+                    self.names = names
+
+                    # ========== FASE DE ETIQUETADO Y AGRUPAMIENTO DE DATASETS ========== #
+
+                    # Vectorizando 1000 datos
+                    sentences = self.read_unlabeled_dataset_rows()
+                    tokenized_sentences = nlp.tokenize_sentences(sentences)
+                    vectors = nlp.generate_vectors(
+                        tokenized_sentences, self.vocabulary)
+
+                    # Etiquetando y agrupando
+                    for vector in vectors:
+                        tag = som.test_one(vector)
+                        self.clusters[tag].append(vector)
 
                 self.nn_training_screen(train_som, csv_path)
 

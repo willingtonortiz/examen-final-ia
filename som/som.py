@@ -55,6 +55,7 @@ class Som:
         self.cols = cols
         self.weights = []
 
+    # data: number[]
     def train(self, data):
         data_size = len(data)
         data_dimensions = len(data[0])
@@ -65,7 +66,6 @@ class Som:
 
         max_range = self.rows + self.cols
         learning_rate = 0.5  # variable?
-        # training_data = data
 
         # Creando las neuronas
         self.weights = [[[random.random() for _ in range(dimensions)]
@@ -93,6 +93,7 @@ class Som:
         (bmu_row, bmu_col) = nearest_neuron(item, self.weights, self.rows, self.cols)
         return bmu_row * self.cols + bmu_col
 
+    # data: [ { type, data } ]
     def test_many(self, data):
         # Clasificando los inputs en los clusters generados
         # Neurona = [rows][cols][dimension]
@@ -101,7 +102,7 @@ class Som:
         # Clasificando la data en los (rows * cols) clusters
         results = [[] for _ in range(self.rows * self.cols)]
         for i, item in enumerate(data):
-            (bmu_row, bmu_col) = nearest_neuron(item, self.weights, self.rows, self.cols)
+            (bmu_row, bmu_col) = nearest_neuron(item['data'], self.weights, self.rows, self.cols)
             results[bmu_row * self.cols + bmu_col].append(item)
 
         return results
