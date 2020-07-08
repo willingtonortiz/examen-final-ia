@@ -67,13 +67,12 @@ class Terminal:
         print(self.classify_result)
         input('Presione Enter para continuar')
 
-    def run(self, csv_path):
-        dont_exit_program = True
+    def create_vocabulary(self):
         data = []
         exam = []
-        with open(csv_path) as csvFile:
+        with open('unlabeled_dataset.csv') as csvFile:
             csvReader = csv.DictReader(csvFile)
-            i = 0
+            i = 1
             for rows in csvReader:
                 if i < 100:
                     data.append(rows)
@@ -85,11 +84,30 @@ class Terminal:
         self.dataset = data
         self.exam = exam
         sentences = [w["Message"] for w in data]
-
+        print(len(sentences))
         tokenized_sentences = nlp.tokenize_sentences(sentences)
+        self.vocabulary = nlp.build_vocabulary(tokenized_sentences, self.vocabulary_size)
+
+    def run(self, csv_path):
+
+        # ========== Generando vocabulario ========== #
+        self.create_vocabulary()
+
+        dont_exit_program = True
+        # data = []
+        # with open(csv_path) as csvFile:
+        #     csvReader = csv.DictReader(csvFile)
+        #     i = 0
+        #     for rows in csvReader:
+        #         if i > 5000:
+        #             break
+        #         data.append(rows)
+        #         i += 1
+        # self.dataset = data
+        # sentences = [w["Message"] for w in data]
+        # tokenized_sentences = nlp.tokenize_sentences(sentences)
+
         # NLP -> Generando vectores
-        self.vocabulary = nlp.build_vocabulary(
-            tokenized_sentences, self.vocabulary_size)
 
         while dont_exit_program:
             self.clear_screen()
