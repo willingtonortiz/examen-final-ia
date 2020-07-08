@@ -22,15 +22,14 @@ class Terminal:
         print(chr(27) + "[2J")
 
     def print_main_menu(self):
-        print('┌─────────────────────────────────────────────────────────┐')
-        print('│                 Clasificador de spam                    │')
-        print('├─────────────────────────────────────────────────────────┤')
-        print('│ 1. Entrenar red neuronal no supervisada                 │')
-        print('│ 2. Etiquetar 1000 datos con red neuronal no supervisada │')
-        print('│ 3. Entrenar red neuronal supervisada                    │')
-        print('│ 4. Clasificar oración                                   │')
-        print('│ 5. Salir                                                │')
-        print('└─────────────────────────────────────────────────────────┘')
+        print('┌────────────────────────────────────────────────────────────────┐')
+        print('│                      Clasificador de spam                      │')
+        print('├────────────────────────────────────────────────────────────────┤')
+        print('│ 1. Entrenar red neuronal no supervisada y etiquetar 1000 datos │')
+        print('│ 2. Entrenar red neuronal supervisada                           │')
+        print('│ 3. Clasificar oración                                          │')
+        print('│ 4. Salir                                                       │')
+        print('└────────────────────────────────────────────────────────────────┘')
 
     def get_input(self, input_message, valid_inputs, data_type):
         incorrect_input = True
@@ -46,8 +45,7 @@ class Terminal:
             print('Cargando' + symbol, end='\r')
             time.sleep(0.05)
 
-    def nn_training_screen(self, neural_network_run, csv_path):
-        print(f'La red neuronal entrenará con el archivo {csv_path}')
+    def nn_training_screen(self, neural_network_run):
         algorithm_thread = threading.Thread(target=neural_network_run)
         algorithm_thread.start()
         while algorithm_thread.is_alive():
@@ -193,16 +191,10 @@ class Terminal:
                         tag = som.test_one(vector)
                         self.clusters[tag].append(vector)
 
-                self.nn_training_screen(train_som, csv_path)
+                print(f'La red neuronal entrenará con el archivo {csv_path}')
+                self.nn_training_screen(train_som)
 
             elif selected_option == 2:
-                def nn_label_run(csv_path):
-                    pass
-
-                self.nn_label_dataset_rows(
-                    'unlabeled_dataset.csv', nn_label_run)
-
-            elif selected_option == 3:
                 def train_nn_from_excel():
                     epoch = 100
                     errors = []
@@ -233,9 +225,9 @@ class Terminal:
                                 self.agent.backPropagate(0, i)
                         errors.append(error*0.5)
 
-                self.nn_training_screen(train_nn_from_som, csv_path)
+                self.nn_training_screen(train_nn_from_som)
 
-            elif selected_option == 4:
+            elif selected_option == 3:
                 def execute_classify(sentences):
                     tokenized_sentences = nlp.tokenize_sentences(sentences)
                     # # NLP -> Generando vectores
@@ -244,5 +236,5 @@ class Terminal:
                     self.classify_result = self.agent.update(vectors[0])
                 self.nn_classify_sentence_screen(execute_classify)
 
-            elif selected_option == 5:
+            elif selected_option == 4:
                 dont_exit_program = False
