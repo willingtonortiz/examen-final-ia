@@ -4,8 +4,6 @@ import threading
 from nlp import nlp
 from som import som
 from nn.neuralnetwork import NN
-import matplotlib
-import matplotlib.pyplot as plt
 import numpy as np
 
 
