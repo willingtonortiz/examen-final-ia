@@ -73,9 +73,11 @@ class Terminal:
                 data.append(rows)
                 i += 1
         sentences = [w["Message"] for w in data]
-        print(len(sentences))
+        print("VOCABULARIO CARGADO!")
+
         tokenized_sentences = nlp.tokenize_sentences(sentences)
-        self.vocabulary = nlp.build_vocabulary(tokenized_sentences, self.vocabulary_size)
+        self.vocabulary = nlp.build_vocabulary(
+            tokenized_sentences, self.vocabulary_size)
 
     def run(self, csv_path):
 
@@ -96,8 +98,6 @@ class Terminal:
         # sentences = [w["Message"] for w in data]
         # tokenized_sentences = nlp.tokenize_sentences(sentences)
 
-        # NLP -> Generando vectores
-
         while dont_exit_program:
             self.clear_screen()
             self.print_main_menu()
@@ -105,8 +105,22 @@ class Terminal:
                 'Ingrese la opción: ', ('1', '2', '3', '4'), int)
             if selected_option == 1:
                 def train_som():
-                    vectors = nlp.generate_vectors(
-                        tokenized_sentences, self.vocabulary)
+                    # ========== Obteniendo dataset de 50 elementos ========== #
+                    data = []
+                    with open('labeled_dataset.csv') as csvFile:
+                        csvReader = csv.DictReader(csvFile)
+                        i = 1
+                        for rows in csvReader:
+                            if i > 50:
+                                break
+                            data.append(rows)
+                            i += 1
+                    sentences = [w["Message"] for w in data]
+                    tokenized_sentences = nlp.tokenize_sentences(sentences)
+
+                    # NLP -> Generando vectores
+                    vectors = nlp.generate_vectors(tokenized_sentences, self.vocabulary)
+
                     # SOM -> Generando clusters
                     results = som.som(vectors, 1, 2)
 
