@@ -125,7 +125,7 @@ class Terminal:
         print('Listo    ')
         input('Presione Enter para continuar')
 
-    def run(self, csv_path):
+    def run(self):
 
         # ========== Generando vocabulario ========== #
         self.create_vocabulary()
@@ -193,13 +193,14 @@ class Terminal:
                     for vector in vectors:
                         tag = som.test_one(vector)
                         clusters[tag].append(vector)
-                        
+
                     self.clusters = clusters
 
-                print(f'La red neuronal entrenará con el archivo {csv_path}')
+                print(f'La red neuronal entrenará con el archivo unlabeled_database.csv')
                 self.nn_training_screen(train_som)
 
             elif selected_option == 2:
+<<<<<<< HEAD
                 def train_nn_from_excel():
                     """
                     Entrena la red supervisada a partir de los datos etiquetados del excel
@@ -221,6 +222,8 @@ class Terminal:
                             self.agent.backPropagate(0, cluster)
                         errors.append(error*0.5)
 
+=======
+>>>>>>> 3f5988a0da5b2b01d4c90c84ff5b3eafdc4982e4
                 def train_nn_from_som():
                     """
                     Entrena la red supervisada a partir de los datos etiquetados del la red SOM
@@ -244,7 +247,7 @@ class Terminal:
                     # # NLP -> Generando vectores
                     vectors = nlp.generate_vectors(
                         tokenized_sentences, self.vocabulary)
-                    self.classify_result = self.agent.update(vectors[0])
+                    self.classify_result = self.names[0] if self.agent.update(vectors[0])[0] > 0.5 else self.names[1]
                 self.nn_classify_sentence_screen(execute_classify)
 
             elif selected_option == 4:

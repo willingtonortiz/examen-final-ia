@@ -35,5 +35,5 @@ def cleanText(dataset, attribute="Message", language="english"):
 
 if __name__ == "__main__":
     t = Terminal()
-    t.run('unlabeled_dataset.csv')
+    t.run()
 
