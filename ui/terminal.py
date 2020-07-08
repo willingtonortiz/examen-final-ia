@@ -92,7 +92,7 @@ class Terminal:
             csvReader = csv.DictReader(csvFile)
             i = 1
             for rows in csvReader:
-                if i < 100:
+                if i < 1000:
                     data.append(rows)
                 elif i < 150:
                     exam.append(rows)
@@ -141,8 +141,8 @@ class Terminal:
 
                     for item in results:
                         print(len(item))
-                        for row in item:
-                            print(len(row))
+                        # for row in item:
+                        #     print(len(row))
 
                     self.clusters = results
 
