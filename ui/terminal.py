@@ -125,7 +125,7 @@ class Terminal:
         print('Listo    ')
         input('Presione Enter para continuar')
 
-    def run(self, csv_path):
+    def run(self):
 
         # ========== Generando vocabulario ========== #
         self.create_vocabulary()
@@ -196,55 +196,12 @@ class Terminal:
 
                     self.clusters = clusters
 
-                    # ========== CALCULO DE ERRORES para 50 elementos ========== #
-                    # categories = self.read_labeled_dataset_Categories()
-                    # # Ajustando ham
-                    # for i, _ in enumerate(categories):
-                    #     if categories[i] == 'ham':
-                    #         categories[i] = "no spam"
-
-                    # sentences = self.read_labeled_dataset_rows()
-                    # tokenized_sentences = nlp.tokenize_sentences(sentences)
-                    # vectors = nlp.generate_vectors(
-                    #     tokenized_sentences, self.vocabulary)
-
-                    # som.train_setup(vectors)
-                    # for j in range(100):
-                    #     som.train_error(vectors)
-                    #     asserts = 0
-
-                    #     for i, item in enumerate(vectors):
-                    #         tag = som.test_one(item)
-
-                    #         if self.names[tag] == categories[i]:
-                    #             asserts += 1
-
-                    #     print(j + 1, asserts, 50-asserts, "Entrenamiento", j + 1, "=> Aciertos: ", asserts)
-
-                print(f'La red neuronal entrenará con el archivo {csv_path}')
+                print(f'La red neuronal entrenará con el archivo unlabeled_database.csv')
                 self.nn_training_screen(train_som)
 
             elif selected_option == 2:
-                def train_nn_from_excel():
-                    epoch = 100
-                    errors = []
-                    for i in range(epoch):
-                        error = 0
-                        for data in self.dataset:
-                            tokenized_sentences = nlp.tokenize_sentences(
-                                [data["Message"]])
-                            vectors = nlp.generate_vectors(
-                                tokenized_sentences, self.vocabulary)
-                            result = self.agent.update(vectors[0])
-                            cluster = 0
-                            if data["Category"] == "spam":
-                                cluster = 1
-                            error += pow(cluster-result[0], 2)
-                            self.agent.backPropagate(0, cluster)
-                        errors.append(error*0.5)
-
                 def train_nn_from_som():
-                    epoch = 100
+                    epoch = 1
                     errors = []
                     for e in range(epoch):
                         error = 0
@@ -263,7 +220,8 @@ class Terminal:
                     # # NLP -> Generando vectores
                     vectors = nlp.generate_vectors(
                         tokenized_sentences, self.vocabulary)
-                    self.classify_result = self.agent.update(vectors[0])
+                    self.classify_result = self.names[0] if self.agent.update(
+                        vectors[0])[0] > 0.5 else self.names[1]
                 self.nn_classify_sentence_screen(execute_classify)
 
             elif selected_option == 4:
