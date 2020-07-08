@@ -21,15 +21,15 @@ class Terminal:
         print(chr(27) + "[2J")
 
     def print_main_menu(self):
-        print('┌─────────────────────────────────────────┐')
-        print('│           Clasificador de spam          │')
-        print('├─────────────────────────────────────────┤')
-        print('│ 1. Entrenar red neuronal no supervisada │')
-        print('│ 2. Entrenar red neuronal supervisada    │')
-        print('│ 3. Tomar examen a la red neuronal       │')
-        print('│ 4. Clasificar oración                   │')
-        print('│ 5. Salir                                │')
-        print('└─────────────────────────────────────────┘')
+        print('┌─────────────────────────────────────────────────────────┐')
+        print('│                 Clasificador de spam                    │')
+        print('├─────────────────────────────────────────────────────────┤')
+        print('│ 1. Entrenar red neuronal no supervisada                 │')
+        print('│ 2. Etiquetar 1000 datos con red neuronal no supervisada │')
+        print('│ 3. Entrenar red neuronal supervisada                    │')
+        print('│ 4. Clasificar oración                                   │')
+        print('│ 5. Salir                                                │')
+        print('└─────────────────────────────────────────────────────────┘')
 
     def get_input(self, input_message, valid_inputs, data_type):
         incorrect_input = True
@@ -88,6 +88,15 @@ class Terminal:
         self.vocabulary = nlp.build_vocabulary(
             tokenized_sentences, self.vocabulary_size)
 
+    def nn_label_dataset_rows(self, csv_path, nn_label_run):
+        print(f'Clasificando 1000 filas del archivo {csv_path}')
+        algorithm_thread = threading.Thread(target=nn_label_run(csv_path))
+        algorithm_thread.start()
+        while algorithm_thread.is_alive():
+            self.print_loading_message()
+        print('Listo    ')
+        input('Presione Enter para continuar')
+
     def run(self, csv_path):
 
         # ========== Generando vocabulario ========== #
@@ -128,7 +137,8 @@ class Terminal:
                     tokenized_sentences = nlp.tokenize_sentences(sentences)
 
                     # NLP -> Generando vectores
-                    vectors = nlp.generate_vectors(tokenized_sentences, self.vocabulary)
+                    vectors = nlp.generate_vectors(
+                        tokenized_sentences, self.vocabulary)
 
                     # SOM -> Generando clusters
                     results = som.som(vectors, 1, 2)
@@ -142,6 +152,13 @@ class Terminal:
                 self.nn_training_screen(train_som, csv_path)
 
             elif selected_option == 2:
+                def nn_label_run(csv_path):
+                    pass
+
+                self.nn_label_dataset_rows(
+                    'unlabeled_dataset.csv', nn_label_run)
+
+            elif selected_option == 3:
                 def train_nn_from_excel():
                     epoch = 100
                     errors = []
@@ -173,24 +190,7 @@ class Terminal:
                         errors.append(error*0.5)
 
                 self.nn_training_screen(train_nn_from_som, csv_path)
-            elif selected_option == 3:
-                def graficar():
-                    error = []
-                    error.append(0)
-                    i = 0
-                    for data in self.exam:
-                        tokenized_sentences = nlp.tokenize_sentences(
-                            [data["Message"]])
-                        vectors = nlp.generate_vectors(
-                            tokenized_sentences, self.vocabulary)
-                        result = self.agent.update(vectors[0])
-                        cluster = 0
-                        if data["Category"] == "spam":
-                            cluster = 1
-                        error.append(
-                            (pow(cluster-result[0], 2) + error[i-1])*0.5)
-                        i += 1
-                graficar()
+
             elif selected_option == 4:
                 def execute_classify(sentences):
                     tokenized_sentences = nlp.tokenize_sentences(sentences)
@@ -199,5 +199,6 @@ class Terminal:
                         tokenized_sentences, self.vocabulary)
                     self.classify_result = self.agent.update(vectors[0])
                 self.nn_classify_sentence_screen(execute_classify)
+
             elif selected_option == 5:
                 dont_exit_program = False
