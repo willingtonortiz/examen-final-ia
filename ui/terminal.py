@@ -134,8 +134,9 @@ class Terminal:
         while dont_exit_program:
             self.clear_screen()
             self.print_main_menu()
-            selected_option = self.get_input(
-                'Ingrese la opción: ', ('1', '2', '3', '4', '5'), int)
+            selected_option = self.get_input('Ingrese la opción: ', ('1', '2', '3', '4', '5'), int)
+            
+            # El usuario selecciona la opcion 1 del menu
             if selected_option == 1:
                 def train_som():
                     # ========== FASE DE ENTRENAMIENTO ========== #
@@ -196,9 +197,12 @@ class Terminal:
 
                     self.clusters = clusters
 
-                print(f'La red neuronal entrenará con el archivo unlabeled_database.csv')
+                print(f'La red neuronal entrenará con 50 datos etiquetados del archivo labeled_dataset.csv')
+                print(f'Generando 2 clústers, spam y no spam')
+                print(f'Luego etiquetará 1000 datos del archivo unlabeled_dataset.csv y los agregará a los 2 clústers formados previamente')
                 self.nn_training_screen(train_som)
 
+            # El usuario selecciona la opcion 2 del menu
             elif selected_option == 2:
                 def train_nn_from_som():
                     epoch = 100
@@ -212,8 +216,10 @@ class Terminal:
                                 self.agent.backPropagate(0, i)
                         errors.append(error*0.5)
 
+                print(f'La red neuronal entrenará con los clústers spam y no spam generados por la red neuronal no supervisada')
                 self.nn_training_screen(train_nn_from_som)
 
+            # El usuario selecciona la opcion 3 del menu
             elif selected_option == 3:
                 def execute_classify(sentences):
                     tokenized_sentences = nlp.tokenize_sentences(sentences)
@@ -221,7 +227,9 @@ class Terminal:
                     vectors = nlp.generate_vectors(
                         tokenized_sentences, self.vocabulary)
                     self.classify_result = self.names[0] if self.agent.update(vectors[0])[0] > 0.5 else self.names[1]
+                
                 self.nn_classify_sentence_screen(execute_classify)
 
+            # El usuario selecciona la opcion 4 del menu
             elif selected_option == 4:
                 dont_exit_program = False
